@@ -9,10 +9,9 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
 
-# Allow CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can restrict this to your frontend domain
+    allow_origins=["https://jomprii.github.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,11 +24,11 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/Junprii", response_model=list[schemas.Task])
+@app.get("/tasks", response_model=list[schemas.Task])
 def read_tasks(db: Session = Depends(get_db)):
     return db.query(models.Task).all()
 
-@app.post("/Junprii", response_model=schemas.Task)
+@app.post("/tasks", response_model=schemas.Task)
 def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
     db_task = models.Task(**task.dict())
     db.add(db_task)
@@ -37,7 +36,7 @@ def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
     db.refresh(db_task)
     return db_task
 
-@app.put("/Junprii/{task_id}", response_model=schemas.Task)
+@app.put("/tasks/{task_id}", response_model=schemas.Task)
 def update_task(task_id: int, updated_task: schemas.TaskUpdate, db: Session = Depends(get_db)):
     task = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not task:
@@ -47,7 +46,7 @@ def update_task(task_id: int, updated_task: schemas.TaskUpdate, db: Session = De
     db.commit()
     return task
 
-@app.delete("/Junprii/{task_id}")
+@app.delete("/tasks/{task_id}")
 def delete_task(task_id: int, db: Session = Depends(get_db)):
     task = db.query(models.Task).filter(models.Task.id == task_id).first()
     if not task:
